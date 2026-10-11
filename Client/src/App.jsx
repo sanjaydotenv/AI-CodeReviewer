@@ -3,6 +3,7 @@ import Editor from "@monaco-editor/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "./App.css";
+import axios from "axios";
 
 const App = () => {
   const [code, setCode] = useState(`function fetchData() {
@@ -27,41 +28,12 @@ const App = () => {
     setLoading(true);
     setReview("");
 
-    try {
-      // Apne backend API endpoint ke according URL change karna.
-      const response = await fetch("http://localhost:3000/ai/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          code,
-          language,
-        }),
-      });
+    const response = await axios.post("http://localhost:3000/ai/revie-code", {
+      code,
+    });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Unable to review your code.");
-      }
-
-      // Apne backend ke actual response structure ke according
-      // data.review ko adjust karna.
-      setReview(
-        data.review ||
-          data.result ||
-          data.response ||
-          data.message ||
-          "No review was returned by the server.",
-      );
-    } catch (error) {
-      setReview(
-        `### ⚠️ Unable to review code\n\n${error.message}\n\nCheck whether your backend is running and the API endpoint is correct.`,
-      );
-    } finally {
-      setLoading(false);
-    }
+    setReview(response.data.response);
+    setLoading(false);
   };
 
   const handleClear = () => {
